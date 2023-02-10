@@ -11,6 +11,8 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      themeMode: ThemeMode.system,
+      darkTheme: ThemeData.dark(),
       initialRoute:
           FirebaseAuth.instance.currentUser == null ? '/sign-in' : '/profile',
       routes: {
