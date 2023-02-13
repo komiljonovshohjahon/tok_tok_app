@@ -4,40 +4,21 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
+import 'package:tok_tok_app/manager/firebase_auth_client.dart';
+import 'package:tok_tok_app/pages/home_screen.dart';
 
 class App extends StatelessWidget {
   const App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    FirebaseAuthClient authClient = Get.find();
     return GetMaterialApp(
       themeMode: ThemeMode.system,
       darkTheme: ThemeData.dark(),
-      initialRoute:
-          FirebaseAuth.instance.currentUser == null ? '/sign-in' : '/profile',
-      routes: {
-        '/sign-in': (context) {
-          return SignInScreen(
-            actions: [
-              AuthStateChangeAction<SignedIn>((context, state) {
-                print('Signed in');
-                Navigator.pushReplacementNamed(context, '/profile');
-              }),
-            ],
-          );
-        },
-        '/profile': (context) {
-          return ProfileScreen(
-            actions: [
-              SignedOutAction((context) {
-                Navigator.pushReplacementNamed(context, '/sign-in');
-              }),
-            ],
-          );
-        },
-      },
+      initialRoute: authClient.isSignedIn ? AppRoutes.home : AppRoutes.signIn,
       onGenerateTitle: (context) => 'TokTok',
-      // onGenerateRoute: AppRoutes.onGenerateRoute,
+      onGenerateRoute: AppRoutes.onGenerateRoute,
       builder: (context, child) {
         return ScreenUtilInit(
           designSize: const Size(360, 720),
@@ -53,23 +34,52 @@ class App extends StatelessWidget {
   }
 }
 
-// class AppRoutes {
-//   static const String login = '/login';
-//
-//   static Map<String, Widget Function(BuildContext)> routes() {
-//     return {
-//       login: (context) => const LoginPage(),
-//     };
-//   }
-//
-//   //Implement onGenerateRoute method
-//   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
-//     switch (settings.name) {
-//       default:
-//         return MaterialPageRoute(
-//           settings: settings,
-//           builder: (BuildContext _) => const LoginPage(),
-//         );
-//     }
-//   }
-// }
+class AppRoutes {
+  static const String signIn = '/signIn';
+  static const String profile = '/profile';
+  static const String home = '/home';
+
+  //Implement onGenerateRoute method
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case signIn:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (BuildContext _) => SignInScreen(
+            actions: [
+              AuthStateChangeAction<SignedIn>((context, state) {
+                Navigator.pushReplacementNamed(context, '/profile');
+              }),
+            ],
+          ),
+        );
+      case profile:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (BuildContext _) => ProfileScreen(
+            actions: [
+              SignedOutAction((context) {
+                Navigator.pushReplacementNamed(context, signIn);
+              }),
+            ],
+          ),
+        );
+      case home:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (BuildContext _) => const HomeScreen(),
+        );
+      default:
+        return MaterialPageRoute(
+          settings: settings,
+          builder: (BuildContext _) => SignInScreen(
+            actions: [
+              AuthStateChangeAction<SignedIn>((context, state) {
+                Navigator.pushReplacementNamed(context, home);
+              }),
+            ],
+          ),
+        );
+    }
+  }
+}
